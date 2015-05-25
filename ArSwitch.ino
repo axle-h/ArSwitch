@@ -10,7 +10,7 @@ const int powerSignalPin = 4;
 // Set to HIGH to signal a halt on the Pi.
 const int rPiGpioOutPin = 5;
 
-// Set HIGH (pull-up inverted) by pi when it's powered.
+// Set HIGH by pi when it's powered.
 const int rPiGpioInPin = 6;
 
 void setup() {
@@ -18,7 +18,7 @@ void setup() {
   pinMode(resetSwitchPin, INPUT_PULLUP);
   pinMode(powerSignalPin, OUTPUT);
   pinMode(rPiGpioOutPin, OUTPUT);
-  pinMode(rPiGpioInPin, INPUT_PULLUP);
+  pinMode(rPiGpioInPin, INPUT);
   
   // Set values.
   digitalWrite(powerSignalPin, LOW);
@@ -31,7 +31,8 @@ void loop() {
   int currentResetState = digitalRead(resetSwitchPin);
   int currentPiPowerState = digitalRead(rPiGpioInPin);
   
-  if(currentPiPowerState != currentPowerSwitchState) {
+  // This equality looks weird because we're comparing a pulled up value with one from pi.
+  if(currentPiPowerState == currentPowerSwitchState) {
     if(currentPowerSwitchState == LOW) {
       switchOn();
     } else {
@@ -42,7 +43,7 @@ void loop() {
   }
   
   // Check if Pi is off. If so then nothing to do.
-  if(currentPiPowerState == HIGH) {
+  if(currentPiPowerState == LOW) {
     return;
   }
   
