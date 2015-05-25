@@ -1,17 +1,22 @@
-// Connected to power toggle switch.
+// Connected to power toggle switch with pull-up resistor.
+// HIGH = Power off, LOW = Power on.
 const int powerSwitchPin = 2;
 
-// Connected to reset push button.
+// Connected to reset push button with upll-up resistor.
+// HIGH = Do nothing, LOW = Reset.
 const int resetSwitchPin = 3;
 
-// Connected to MOSFET with pull-down resistor. When LOW, Pi is off, when HIGH Pi is on.
-const int powerSignalPin = 4;
+// Connected to MOSFET with pull-down resistor.
+// LOW = Pi off, HIGH = Pi on.
+const int powerSignalPin = 9;
 
-// Set to HIGH to signal a halt on the Pi.
-const int rPiGpioOutPin = 5;
+// Connected to Pi Gpio set as input
+// Set to HIGH to signal PiSwitch to halt the Pi.
+const int rPiGpioOutPin = 10;
 
-// Set HIGH by pi when it's powered.
-const int rPiGpioInPin = 6;
+// Connected to Pi Gpio set as output
+// Set HIGH by pi when it's powered and PiSwitch is running.
+const int rPiGpioInPin = 11;
 
 void setup() {
   pinMode(powerSwitchPin, INPUT_PULLUP);
