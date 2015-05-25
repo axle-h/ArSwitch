@@ -28,8 +28,8 @@ void setup() {
 void loop() {
   // Check if power switch has been toggled.
   int currentPowerSwitchState = digitalRead(powerSwitchPin);
-  int currentPiPowerState = digitalRead(rPiGpioInPin);
   int currentResetState = digitalRead(resetSwitchPin);
+  int currentPiPowerState = digitalRead(rPiGpioInPin);
   
   if(currentPiPowerState != currentPowerSwitchState) {
     if(currentPowerSwitchState == LOW) {
@@ -68,8 +68,6 @@ void switchOn() {
     if(currentGpioInState == LOW) {
       return;
     }
-    
-    delay(500);
   }
 }
 
@@ -90,8 +88,6 @@ void switchOff() {
       digitalWrite(rPiGpioOutPin, LOW);
       return;
     }
-    
-    delay(500);
   }
 }
 
