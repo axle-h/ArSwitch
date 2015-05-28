@@ -16,7 +16,7 @@ const int rPiGpioInPin = 11;
 
 // LED will flash while we're doing 'stuff'
 const int ledPin = 13;
-const long ledBlinkInterval = 1000;           
+const long ledBlinkInterval = 500;           
 
 int ledState;
 unsigned long lastLedBlinkMillis;
