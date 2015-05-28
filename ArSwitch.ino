@@ -42,11 +42,18 @@ void loop() {
   
     // This equality looks weird because we're comparing a pulled up value with one from pi.
     if(currentPiPowerState == currentPowerSwitchState) {
+    
+        // Don't care what the Pi is doing at this point.
         if(currentPowerSwitchState == LOW) {
+            // Either Pi is off and switch has moved up or switch was already up and Pi halted itself.
+            // In the last case we will turn it back on again. Sorry Pi you cannot go to sleep by yourself :-).
             switchOn();
         } else {
+            // Pi is on and switch has moved down.
             switchOff();
         }
+        
+        // Turn LED off.
         resetLed();
     }
 }
@@ -85,11 +92,12 @@ void switchOn() {
     // Wait for signal from Pi.
     while(1) {
         int currentGpioInState = digitalRead(rPiGpioInPin);
-        blinkLed();
-        
+                
         if(currentGpioInState == HIGH) {
             return;
         }
+        
+        blinkLed();
     }
 }
 
@@ -101,8 +109,7 @@ void switchOff() {
     // Wait for signal to drop from Pi.
     while(1) {
         int currentGpioInState = digitalRead(rPiGpioInPin);
-        blinkLed();
-        
+               
         if(currentGpioInState == LOW) {
             // Set led on for this.
             digitalWrite(ledPin, HIGH);
@@ -115,6 +122,8 @@ void switchOff() {
             digitalWrite(rPiGpioOutPin, LOW);
             return;
         }
+        
+        blinkLed();
     }
 }
 
