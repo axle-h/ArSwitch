@@ -16,7 +16,8 @@ const int rPiGpioInPin = 11;
 
 // LED will flash while we're doing 'stuff'
 const int ledPin = 13;
-const long ledBlinkInterval = 500;           
+const long switchOnLedBlinkInterval = 500;
+const long switchOffLedBlinkInterval = 250;
 
 int ledState;
 unsigned long lastLedBlinkMillis;
@@ -64,7 +65,7 @@ void resetLed() {
     lastLedBlinkMillis = 0;
 }
 
-void blinkLed() {
+void blinkLed(unsigned long ledBlinkInterval) {
     unsigned long currentMillis = millis();
     if(currentMillis - lastLedBlinkMillis > ledBlinkInterval) {
         // save the last time you blinked the LED 
@@ -90,14 +91,8 @@ void switchOn() {
     digitalWrite(rPiGpioOutPin, LOW);
   
     // Wait for signal from Pi.
-    while(1) {
-        int currentGpioInState = digitalRead(rPiGpioInPin);
-                
-        if(currentGpioInState == HIGH) {
-            return;
-        }
-        
-        blinkLed();
+    while(digitalRead(rPiGpioInPin) == LOW) {
+        blinkLed(switchOnLedBlinkInterval);
     }
 }
 
@@ -107,24 +102,20 @@ void switchOff() {
     digitalWrite(rPiGpioOutPin, HIGH);
   
     // Wait for signal to drop from Pi.
-    while(1) {
-        int currentGpioInState = digitalRead(rPiGpioInPin);
-               
-        if(currentGpioInState == LOW) {
-            // Set led on for this.
-            digitalWrite(ledPin, HIGH);
-        
-            // Give it 5 more seconds.
-            delay(5000);
-      
-            // Turn off the MOSFET and Pi halt signal.
-            digitalWrite(powerSignalPin, LOW);
-            digitalWrite(rPiGpioOutPin, LOW);
-            return;
-        }
-        
-        blinkLed();
+    while(digitalRead(rPiGpioInPin) == HIGH) {
+        blinkLed(switchOffLedBlinkInterval);
     }
+    
+    // Set led on while we wait.
+    digitalWrite(ledPin, HIGH);
+
+    // Give it 5 more seconds.
+    delay(5000);
+
+    // Turn off the MOSFET and Pi halt signal.
+    digitalWrite(powerSignalPin, LOW);
+    digitalWrite(rPiGpioOutPin, LOW);
+    return;
 }
 
 
