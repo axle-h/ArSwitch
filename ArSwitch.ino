@@ -14,15 +14,25 @@ const int rPiGpioOutPin = 10;
 // Set HIGH by pi when it's powered and PiSwitch is running.
 const int rPiGpioInPin = 11;
 
+// LED will flash while we're doing 'stuff'
+const int ledPin = 13;
+const long ledBlinkInterval = 1000;           
+
+int ledState;
+unsigned long lastLedBlinkMillis;
+
 void setup() {
     pinMode(powerSwitchPin, INPUT_PULLUP);
     pinMode(powerSignalPin, OUTPUT);
     pinMode(rPiGpioOutPin, OUTPUT);
     pinMode(rPiGpioInPin, INPUT);
+    pinMode(ledPin, OUTPUT);
   
     // Set values.
     digitalWrite(powerSignalPin, LOW);
     digitalWrite(rPiGpioOutPin, LOW);
+    
+    resetLed();
 }
 
 void loop() {    
@@ -37,8 +47,31 @@ void loop() {
         } else {
             switchOff();
         }
-    
-        return;
+        resetLed();
+    }
+}
+
+void resetLed() {
+    digitalWrite(ledPin, LOW);
+    ledState = LOW;
+    lastLedBlinkMillis = 0;
+}
+
+void blinkLed() {
+    unsigned long currentMillis = millis();
+    if(currentMillis - lastLedBlinkMillis > ledBlinkInterval) {
+        // save the last time you blinked the LED 
+        lastLedBlinkMillis = currentMillis;   
+
+        // if the LED is off turn it on and vice-versa:
+        if (ledState == LOW) {
+            ledState = HIGH;
+        } else {
+            ledState = LOW;
+        }
+        
+        // set the LED with the ledState of the variable:
+        digitalWrite(ledPin, ledState);
     }
 }
 
@@ -52,8 +85,9 @@ void switchOn() {
     // Wait for signal from Pi.
     while(1) {
         int currentGpioInState = digitalRead(rPiGpioInPin);
-    
-        if(currentGpioInState == LOW) {
+        blinkLed();
+        
+        if(currentGpioInState == HIGH) {
             return;
         }
     }
@@ -61,13 +95,18 @@ void switchOn() {
 
 void switchOff() {
     // Trigger Pi halt.
+    // PiSwitch should be running and waiting for rPiGpioOutPin to be HIGH.
     digitalWrite(rPiGpioOutPin, HIGH);
   
     // Wait for signal to drop from Pi.
     while(1) {
         int currentGpioInState = digitalRead(rPiGpioInPin);
-    
-        if(currentGpioInState == HIGH) {
+        blinkLed();
+        
+        if(currentGpioInState == LOW) {
+            // Set led on for this.
+            digitalWrite(ledPin, HIGH);
+        
             // Give it 5 more seconds.
             delay(5000);
       
