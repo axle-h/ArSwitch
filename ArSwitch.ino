@@ -8,11 +8,11 @@ const int powerSignalPin = 9;
 
 // Connected to Pi Gpio set as input
 // Set to HIGH to signal PiSwitch to halt the Pi.
-const int rPiGpioOutPin = 10;
+const int rPiGpioOutPin = 11;
 
 // Connected to Pi Gpio set as output
 // Set HIGH by pi when it's powered and PiSwitch is running.
-const int rPiGpioInPin = 11;
+const int rPiGpioInPin = 10;
 
 // LED will flash while we're doing 'stuff'
 const int ledPin = 13;
@@ -40,7 +40,7 @@ void loop() {
     // Check if power switch has been toggled.
     int currentPowerSwitchState = digitalRead(powerSwitchPin);
     int currentPiPowerState = digitalRead(rPiGpioInPin);
-  
+    
     // This equality looks weird because we're comparing a pulled up value with one from pi.
     if(currentPiPowerState == currentPowerSwitchState) {
     
