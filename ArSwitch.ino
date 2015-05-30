@@ -22,7 +22,14 @@ const long switchOffLedBlinkInterval = 250;
 int ledState;
 unsigned long lastLedBlinkMillis;
 
+int expectedPiState;
+int lastSwitchState;
+
 void setup() {
+    Serial.begin(9600);
+    Serial.println("reset");
+    delay(500);
+    
     pinMode(powerSwitchPin, INPUT_PULLUP);
     pinMode(powerSignalPin, OUTPUT);
     pinMode(rPiGpioOutPin, OUTPUT);
@@ -33,28 +40,35 @@ void setup() {
     digitalWrite(powerSignalPin, LOW);
     digitalWrite(rPiGpioOutPin, LOW);
     
+    expectedPiState = LOW;
+    lastSwitchState = digitalRead(powerSwitchPin);
+    
+    Serial.println(lastSwitchState == HIGH ? "Switch = Off" : "Switch = On");
+    delay(100);
+    
     resetLed();
 }
 
 void loop() {    
     // Check if power switch has been toggled.
     int currentPowerSwitchState = digitalRead(powerSwitchPin);
-    int currentPiPowerState = digitalRead(rPiGpioInPin);
     
-    // This equality looks weird because we're comparing a pulled up value with one from pi.
-    if(currentPiPowerState == currentPowerSwitchState) {
+    if(currentPowerSwitchState != lastSwitchState) {
+        Serial.println(currentPowerSwitchState == HIGH ? "Switch -> Off" : "Switch -> On");
+        delay(100);
+        
+        lastSwitchState = currentPowerSwitchState;
+    }
     
+    // This equality looks weird. Caused by pull-up resistor on switch.
+    if(expectedPiState == currentPowerSwitchState) {
         // Don't care what the Pi is doing at this point.
         if(currentPowerSwitchState == LOW) {
-            // Either Pi is off and switch has moved up or switch was already up and Pi halted itself.
-            // In the last case we will turn it back on again. Sorry Pi you cannot go to sleep by yourself :-).
             switchOn();
         } else {
-            // Pi is on and switch has moved down.
             switchOff();
         }
         
-        // Turn LED off.
         resetLed();
     }
 }
@@ -84,23 +98,33 @@ void blinkLed(unsigned long ledBlinkInterval) {
 }
 
 void switchOn() {
+    Serial.println("Pi -> On");
+
     // Turn on the MOSFET.
     digitalWrite(powerSignalPin, HIGH);
   
     // Set the gpio out LOW as Pi will halt if it sees HIGH.
     digitalWrite(rPiGpioOutPin, LOW);
-  
+    
+    // Wait for a bit so input settles
+    delay(2000);
+    
     // Wait for signal from Pi.
     while(digitalRead(rPiGpioInPin) == LOW) {
         blinkLed(switchOnLedBlinkInterval);
     }
+    
+    expectedPiState = HIGH;
+    Serial.println("Pi = Switch = On");
 }
 
 void switchOff() {
+    Serial.println("Pi -> Off");
+
     // Trigger Pi halt.
     // PiSwitch should be running and waiting for rPiGpioOutPin to be HIGH.
     digitalWrite(rPiGpioOutPin, HIGH);
-  
+    
     // Wait for signal to drop from Pi.
     while(digitalRead(rPiGpioInPin) == HIGH) {
         blinkLed(switchOffLedBlinkInterval);
@@ -109,13 +133,15 @@ void switchOff() {
     // Set led on while we wait.
     digitalWrite(ledPin, HIGH);
 
-    // Give it 5 more seconds.
+    Serial.println("Mosfet off in 5s");
     delay(5000);
 
     // Turn off the MOSFET and Pi halt signal.
     digitalWrite(powerSignalPin, LOW);
     digitalWrite(rPiGpioOutPin, LOW);
-    return;
+    
+    expectedPiState = LOW;
+    Serial.println("Pi = Switch = Off");
 }
 
 
